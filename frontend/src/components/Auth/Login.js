@@ -15,7 +15,6 @@ const Login = () => {
                 body: JSON.stringify({ username, password }),
             });
             const data = await response.json();
-            // Handle token received from backend
             console.log(data);
         } catch (error) {
             console.error('Error during login:', error);

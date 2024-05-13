@@ -25,9 +25,9 @@ router.post('/login', async (req, res) => {
         const queryResult = await new Promise((resolve, reject) => {
             db.query('SELECT * FROM users WHERE username = ?', [username], (error, results) => {
                 if (error) {
-                    reject(error); // Reject the promise with the error
+                    reject(error);
                 } else {
-                    resolve(results); // Resolve the promise with the query results
+                    resolve(results); 
                 }
             });
         });
