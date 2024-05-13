@@ -1,31 +1,19 @@
-// const express = require('express');
-// const mongoose = require('mongoose');
-// const bodyParser = require('body-parser');
-// const authRoutes = require('./routes/auth');
-// const classesRoutes = require('./routes/classes');
-// const studentsRoutes = require('./routes/students');
-// const authMiddleware = require('./middleware/authMiddleware');
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const mysql = require('mysql');
+const authEndpoints = require('./endpoints/auth-endpoint');
+const app = express();
+const port = 5000;
 
-// const app = express();
-// const PORT = process.env.PORT || 3000;
+app.use(bodyParser.json());
+app.use(cors());
 
-// // Middleware
-// app.use(bodyParser.json());
+const db = require('./repository/database');
 
-// // Routes
-// app.use('/auth', authRoutes);
-// app.use('/classes', authMiddleware, classesRoutes);
-// app.use('/students', authMiddleware, studentsRoutes);
+app.use('/api', authEndpoints);
 
-// // Connect to MongoDB
-// mongoose.connect('mongodb://localhost:27017/sqafinals', {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// }).then(() => {
-//   console.log("MongoDB connected");
-// }).catch(err => console.log(err));
 
-// // Start server
-// app.listen(PORT, () => {
-//   console.log(`Server is running on port ${PORT}`);
-// });
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
