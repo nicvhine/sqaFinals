@@ -1,64 +1,51 @@
 const pool = require('./database');
+const bcrypt = require('bcryptjs');
 
-const registerUser = async (username, email, password) => {
-    const sql = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
+const registerUser = async (username, password) => {
     try {
-        const result = await pool.query(sql, [username, email, password]);
-        return result;
-    } catch (err) {
-        console.error('Error registering user:', err);
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const sql = 'INSERT INTO users (username, password) VALUES (?, ?)';
+        await pool.query(sql, [username, hashedPassword]);
+        return { success: true };
+    } catch (error) {
+        console.error('Error registering user:', error);
         throw new Error('Failed to register user. Please try again later.');
     }
 };
 
-const getUser = async (userId) => {
-    const sql = 'SELECT * FROM users WHERE id = ?';
+const getUserByUsername = async (username) => {
     try {
-        const result = await pool.query(sql, [userId]);
-        return result;
-    } catch (err) {
-        console.error('Error fetching user:', err);
-        throw new Error('Failed to fetch user information.');
+        const sql = 'SELECT * FROM users WHERE username = ?';
+        const result = await pool.query(sql, [username]);
+        return result[0]; 
+    } catch (error) {
+        console.error('Error fetching user by username:', error);
+        throw new Error('Failed to fetch user by username.');
     }
 };
 
-const deleteUser = async (userId) => {
-    const checkIfExistsSQL = 'SELECT * FROM users WHERE id = ?';
+const loginUser = async (username, password) => {
     try {
-        const results = await pool.query(checkIfExistsSQL, [userId]);
-        if (results.length === 0) {
-            throw new Error('User not found');
-        }
-        
-        const deleteSQL = 'DELETE FROM users WHERE id = ?';
-        const result = await pool.query(deleteSQL, [userId]);
-        return result;
-    } catch (err) {
-        console.error('Error deleting user:', err);
-        throw new Error('Failed to delete user.');
-    }
-};
-
-const updateUser = async (userId, username, email, password) => {
-    const checkIfExistsSQL = 'SELECT * FROM users WHERE id = ?';
-    try {
-        const results = await pool.query(checkIfExistsSQL, [userId]);
-        if (results.length === 0) {
+        const user = await getUserByUsername(username);
+        if (!user) {
             throw new Error('User not found');
         }
 
-        const sql = 'UPDATE users SET username = ?, email = ?, password = ? WHERE id = ?';
-        const result = await pool.query(sql, [username, email, password, userId]);
-        return result;
-    } catch (err) {
-        console.error('Error updating user:', err);
-        throw new Error('Failed to update user information.');
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            throw new Error('Invalid password');
+        }
+
+        return { success: true, user }; 
+    } catch (error) {
+        console.error('Error logging in:', error);
+        throw new Error('Failed to login');
     }
 };
+
 
 module.exports = {
     registerUser,
-    getUser,
-    deleteUser,
-    updateUser
+    getUserByUsername,
+    loginUser,
 };

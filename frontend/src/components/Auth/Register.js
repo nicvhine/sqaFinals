@@ -1,4 +1,6 @@
+import { Link } from 'react-router-dom'; 
 import React, { useState } from 'react';
+import { REGISTER_API_URL } from "../url";
 
 function RegistrationForm() {
     const [username, setUsername] = useState('');
@@ -9,7 +11,7 @@ function RegistrationForm() {
         event.preventDefault();
 
         try {
-            const response = await fetch('/register', {
+            const response = await fetch(REGISTER_API_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -17,12 +19,13 @@ function RegistrationForm() {
                 body: JSON.stringify({ username, password })
             });
 
+            const data = await response.json();
+
             if (response.ok) {
                 setMessage('User registered successfully');
                 setUsername('');
                 setPassword('');
             } else {
-                const data = await response.json();
                 setMessage(data.error || 'Failed to register user. Please try again later.');
             }
         } catch (error) {
@@ -47,6 +50,7 @@ function RegistrationForm() {
                     <button type="submit" className='bg-slate-600 w-[200px] rounded-md font-medium my-6 mx-auto py-3 text-white hover:bg-[#374357]'>Register</button>
                 </form>
                 <div>{message}</div>
+                <p className="mt-4 text-gray-600">Already registere? <Link to="/" className="text-blue-500 hover:underline">Login here</Link></p>
             </div>
         </div>
     );

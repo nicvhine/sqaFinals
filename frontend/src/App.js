@@ -11,8 +11,8 @@ function App() {
     <Router>
       <div>
         <Routes>
-          {/* <Route exact path="/" element={< Login />} /> */}
-          <Route exact path="/" element={< Register />} />
+          <Route exact path="/" element={< Login />} />
+          <Route path="/register" element={< Register />} />
           {/* <Route path="/dashboard" element={< Dashboard />} /> */}
           {/* <Route path="/classes" element={< ClassList />} /> */}
           {/* <Route path="/students" element={< StudentList />} /> */}

@@ -5,9 +5,8 @@ const pool = mysql.createPool({
     host : 'localhost',
     user : 'root',
     password : '',
-    database : 'tasks',
+    database : 'sqaFinals',
     debug : false
-
 });
 
-module.exports = pool;      
+module.exports = pool;
