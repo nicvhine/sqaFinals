@@ -15,11 +15,14 @@ const Login = () => {
                 body: JSON.stringify({ username, password }),
             });
             const data = await response.json();
-            console.log(data);
+            localStorage.setItem('token', data.token); // Store token in local storage
+            console.log("Token stored in local storage:", data.token);
         } catch (error) {
             console.error('Error during login:', error);
         }
     };
+    
+    
 
     return (
         <div>
