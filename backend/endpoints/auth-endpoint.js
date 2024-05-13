@@ -1,40 +1,55 @@
 const express = require('express');
 const router = express.Router();
-const userRepo = require('../repository/auth-repo');
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const db = require('../repository/database');
+const { secretKey } = require('../config');
 
+// Register endpoint
 router.post('/register', async (req, res) => {
-    const { username, password } = req.body;
-
     try {
-        const existingUser = await userRepo.getUserByUsername(username);
-        if (existingUser) {
-            return res.status(400).json({ error: 'Username already exists' });
-        }
-
-        await userRepo.registerUser(username, password);
+        const { username, password } = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const result = await db.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword]);
         res.status(201).json({ message: 'User registered successfully' });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Failed to register user' });
+    } catch (error) {
+        console.error('Error during registration:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-
     try {
-        const { success, user } = await userRepo.loginUser(username, password);
-        if (!success) {
-            return res.status(401).json({ error: 'Invalid username or password' });
+        const { username, password } = req.body;
+        console.log('Login request received for username:', username);
+        const queryResult = await new Promise((resolve, reject) => {
+            db.query('SELECT * FROM users WHERE username = ?', [username], (error, results) => {
+                if (error) {
+                    reject(error); // Reject the promise with the error
+                } else {
+                    resolve(results); // Resolve the promise with the query results
+                }
+            });
+        });
+
+        const [user = null] = queryResult;
+        console.log('User found:', user);
+        if (!user) {
+            console.log('User not found');
+            return res.status(401).json({ message: 'Invalid username or password' });
         }
 
-        const token = jwt.sign({ userId: user.id }, 'your_secret_key', { expiresIn: '1h' });
-        res.json({ token });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Failed to login' });
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
+            console.log('Password does not match');
+            return res.status(401).json({ message: 'Invalid username or password' });
+        }
+
+        const token = jwt.sign({ id: user.id, username: user.username }, secretKey, { expiresIn: '1h' });
+        res.status(200).json({ token });
+    } catch (error) {
+        console.error('Error during login:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
